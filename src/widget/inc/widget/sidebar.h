@@ -20,22 +20,29 @@
 #include "widget/widget.h"
 #include "widget/filter_combo.h"
 
+#include <functional>
+#include <system_error>
+
 namespace OpenScope {
 
 class Sidebar : public Widget {
 public:
-    Sidebar();
-    ~Sidebar() = default;
+	using ConnectCallback = std::function<std::error_code(const std::string&, const std::string&)>;
 
-    void drawContent() override;
+	Sidebar();
+	~Sidebar() = default;
 
-    static constexpr char WINDOW_NAME[] = "Debug Configuration";
+	void drawContent() override;
+	void setConnectCallback(ConnectCallback f);
+
+	static constexpr char WINDOW_NAME[] = "Debug Configuration";
 
 private:
-    FilterCombo m_target_combo;
+	FilterCombo m_target_combo;
 
-    int m_intf_index = 0;
-    bool m_infoPopupOpen = true;
+	int m_intf_index = 0;
+	bool m_infoPopupOpen = true;
+	ConnectCallback m_connect_cb;
 };
 
 } // OpenScope

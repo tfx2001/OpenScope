@@ -16,6 +16,6 @@ target_link_libraries(${PROJECT_NAME}
 if (UNIX)
     target_link_libraries(${PROJECT_NAME} PRIVATE GL)
 elseif (MSVC)
-    target_link_options(${PROJECT_NAME} PRIVATE /SUBSYSTEM:windows /ENTRY:mainCRTStartup)
+    target_link_options(${PROJECT_NAME} PUBLIC /SUBSYSTEM:windows /ENTRY:mainCRTStartup)
     target_link_libraries(${PROJECT_NAME} PRIVATE opengl32)
 endif ()

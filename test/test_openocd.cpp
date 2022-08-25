@@ -20,12 +20,11 @@
 
 using namespace OpenScope;
 
-int main(int, char **) {
-    for (const auto &s: OpenOcd::startProcess(OpenOcd::INTERFACE_LIST[1].second, "target/stm32h7x.cfg")) {
-        std::cout << s << std::endl;
-    }
+int main(int, char**) {
+	OpenOcd openocd;
 
-    return 0;
+	openocd.startProcess(OpenOcd::INTERFACE_LIST[1].second, "target/stm32h7x.cfg");
+	return 0;
 }
 
 #define OPENSCOPE_TEST_OPENOCD_H

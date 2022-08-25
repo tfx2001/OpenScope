@@ -24,8 +24,10 @@
 #include <GLFW/glfw3.h>
 
 #include "lib/event.hpp"
+#include "lib/openocd.h"
 #include "widget/sidebar.h"
 #include "widget/popup.h"
+#include "widget/console.h"
 
 namespace OpenScope {
 
@@ -41,7 +43,6 @@ private:
     void initImGui();
     void exitImGui();
     void exitGLFW();
-    void initUI();
     void frameBegin();
     void frame();
     void frameEnd();
@@ -52,10 +53,13 @@ private:
 
     static constexpr const char *MAIN_DOCKSPACE_ID = "MainDockSpace";
 
-    GLFWwindow *m_window;
+    GLFWwindow *m_window = nullptr;
     std::string m_window_title;
-    std::unique_ptr<Sidebar> m_sidebar;
-    std::unique_ptr<Popup> m_popup;
+    Sidebar m_sidebar;
+    Popup m_popup;
+    Console m_console;
+
+    OpenOcd m_openocd;
 };
 
 } // OpenScope

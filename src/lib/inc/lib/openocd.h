@@ -20,7 +20,7 @@
 #include <array>
 #include <string>
 #include <vector>
-#include <memory>
+#include <thread>
 
 #include <SDKDDKVer.h>
 #include <boost/process.hpp>
@@ -31,15 +31,25 @@ namespace bp = boost::process;
 
 class OpenOcd {
 public:
-    OpenOcd();
-    ~OpenOcd();
+	using MsgAvaliableCallback = std::function<void(std::string&&)>;
 
-    static const std::array<std::pair<const char *, const char *>, 3> INTERFACE_LIST;
-    static std::vector<std::string> listTarget();
+	OpenOcd() = default;
+	~OpenOcd();
 
-    void startProcess(const std::string &intf, const std::string &target);
+	static const std::array<std::pair<const char*, const char*>, 3> INTERFACE_LIST;
+	static std::vector<std::string> listTarget();
+
+	std::error_code startProcess(const std::string& intf, const std::string& target, MsgAvaliableCallback&& cb);
+	void wait();
+
 private:
-    std::unique_ptr<bp::child> m_process;
+	bp::child m_process;
+	std::unique_ptr<bp::ipstream> m_read_stream;
+	std::thread m_thread;
+	MsgAvaliableCallback m_cb;
+	bool m_is_running;
+
+	void threadEntry();
 };
 
 }

@@ -14,30 +14,28 @@
  * limitations under the License.
  */
 
-#ifndef OPENSCOPE_FILTER_COMBO_H
-#define OPENSCOPE_FILTER_COMBO_H
-
 #include "widget/widget.h"
 
+#include <string>
 #include <vector>
+#include <mutex>
 
 namespace OpenScope {
 
-class FilterCombo : public Widget {
+class Console : public Widget {
 public:
-    explicit FilterCombo(std::string name);
-    ~FilterCombo() = default;
+	explicit Console(std::string name);
+	~Console() = default;
 
-    void drawContent() override;
-    int addItem(std::string &&item);
-    const std::string& currentItem();
+	void drawContent() override;
+	void appendLine(std::string&& output);
+
+	static constexpr char OPENOCD_WINDOW_NAME[] = "OpenOCD Output";
 
 private:
-    std::vector<std::string> m_items;
-    std::string m_pattern;
-    int m_cur_index = 0;
+	std::vector<std::string> m_message;
+	bool m_scroll_down;
+	std::mutex m_lock;
 };
 
-} // OpenScope
-
-#endif //OPENSCOPE_FILTER_COMBO_H
+}
