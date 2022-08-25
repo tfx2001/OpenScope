@@ -24,18 +24,18 @@ namespace OpenScope {
 
 class Console : public Widget {
 public:
-	explicit Console(std::string name);
-	~Console() = default;
+    explicit Console(std::string name);
+    ~Console() = default;
 
-	void drawContent() override;
-	void appendLine(std::string&& output);
+    void drawContent() override;
+    void appendLine(std::string &&output);
 
-	static constexpr char OPENOCD_WINDOW_NAME[] = "OpenOCD Output";
+    static constexpr char OPENOCD_WINDOW_NAME[] = "OpenOCD Output";
 
 private:
-	std::vector<std::string> m_message;
-	bool m_scroll_down;
-	std::mutex m_lock;
+    std::vector<std::string> m_message;
+    bool m_scroll_down;
+    std::mutex m_lock;
 };
 
 }

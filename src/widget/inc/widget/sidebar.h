@@ -22,27 +22,32 @@
 
 #include <functional>
 #include <system_error>
+#include <mutex>
 
 namespace OpenScope {
 
 class Sidebar : public Widget {
 public:
-	using ConnectCallback = std::function<std::error_code(const std::string&, const std::string&)>;
+    using ConnectCallback = std::function<std::error_code(const std::string &, const std::string &)>;
+    using TerminateCallback = std::function<void()>;
 
-	Sidebar();
-	~Sidebar() = default;
+    Sidebar();
+    ~Sidebar() = default;
 
-	void drawContent() override;
-	void setConnectCallback(ConnectCallback f);
+    void drawContent() override;
+    void setConnectCallback(ConnectCallback &&f);
+    void setTerminateCallback(TerminateCallback &&f);
 
-	static constexpr char WINDOW_NAME[] = "Debug Configuration";
+    static constexpr char WINDOW_NAME[] = "Debug Configuration";
 
 private:
-	FilterCombo m_target_combo;
+    FilterCombo m_target_combo;
 
-	int m_intf_index = 0;
-	bool m_infoPopupOpen = true;
-	ConnectCallback m_connect_cb;
+    int m_intf_index = 0;
+    bool m_is_running = false;
+    std::mutex m_lock;
+    ConnectCallback m_connect_cb;
+    TerminateCallback m_terminate_cb;
 };
 
 } // OpenScope

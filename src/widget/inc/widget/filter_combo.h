@@ -30,7 +30,7 @@ public:
 
     void drawContent() override;
     int addItem(std::string &&item);
-    const std::string& currentItem();
+    const std::string &currentItem();
 
 private:
     std::vector<std::string> m_items;

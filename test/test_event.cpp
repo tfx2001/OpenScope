@@ -18,6 +18,7 @@
 
 #include <iostream>
 #include <cassert>
+#include <fmt/format.h>
 
 using namespace OpenScope;
 
@@ -42,6 +43,9 @@ int main(int, char **) {
     // Unsubscribe TestEvent for value2
     EventManager::unsubscribe<TestEvent2>(TOKEN);
     postEvent(7);
+
+    float value = 1.23789287384f;
+    fmt::print("Hello {:f}", value);
 
     assert(value1 == 12);   // 0 + 5 + 7
     assert(value2 == 11);   // 6 + 5

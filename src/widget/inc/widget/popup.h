@@ -46,7 +46,7 @@ public:
 
     void drawContent() override;
 
-    static void showInfoPopup(const std::string &message);
+    static void showInfo(const std::string &message);
 
 private:
     static std::string s_popup_message;

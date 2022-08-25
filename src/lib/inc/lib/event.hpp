@@ -138,7 +138,10 @@ private:
 // Draw event
 EVENT_DEF(DrawEvent);
 // Widget event
-EVENT_DEF(WindowCreate, const std::string &);
+EVENT_DEF(WindowCreate, const std::string&);
+// OpenOCD event
+EVENT_DEF(OpenOcdStart);
+EVENT_DEF(OpenOcdExit);
 // Event for test
 EVENT_DEF(TestEvent1, int);
 EVENT_DEF(TestEvent2, int);

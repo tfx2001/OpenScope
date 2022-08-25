@@ -19,44 +19,65 @@
 #include <imgui.h>
 #include <fmt/format.h>
 
+#include "lib/event.hpp"
 #include "lib/openocd.h"
 #include "widget/popup.h"
 
 namespace OpenScope {
 
 Sidebar::Sidebar() :
-	Widget(WINDOW_NAME, true),
-	m_target_combo("Target") {
+        Widget(WINDOW_NAME, true),
+        m_target_combo("Target") {
 
-	for (auto& filename : OpenOcd::listTarget()) {
-		m_target_combo.addItem(std::move(filename));
-	}
+    for (auto &filename: OpenOcd::listTarget()) {
+        m_target_combo.addItem(std::move(filename));
+    }
+
+    EventManager::subscribe<OpenOcdStart>([&] {
+      std::lock_guard lock(m_lock);
+      m_is_running = true;
+    });
+    EventManager::subscribe<OpenOcdExit>([&] {
+      std::lock_guard lock(m_lock);
+      m_is_running = false;
+    });
 }
 
 void Sidebar::drawContent() {
-	ImGui::BeginChild("config combo", ImVec2(0, -ImGui::GetFrameHeightWithSpacing()));
-	ImGui::Combo("Interface", &m_intf_index, [](void* data, int index, const char** text) {
-		*text = OpenOcd::INTERFACE_LIST[index].first;
-		return true;
-		}, nullptr, static_cast<int>(OpenOcd::INTERFACE_LIST.size()));
-	m_target_combo.drawContent();
+    std::lock_guard lock(m_lock);
 
-	ImGui::EndChild();
+    ImGui::Combo("Interface", &m_intf_index, [](void *data, int index, const char **text) {
+      *text = OpenOcd::INTERFACE_LIST[index].first;
+      return true;
+    }, nullptr, static_cast<int>(OpenOcd::INTERFACE_LIST.size()));
+    m_target_combo.drawContent();
 
-	if (ImGui::Button("Connect"))
-		if (m_connect_cb) {
-			auto ec = m_connect_cb(
-				OpenOcd::INTERFACE_LIST[m_intf_index].second,
-				"target/" + m_target_combo.currentItem() + ".cfg");
-			if (ec) {
-				Popup::showInfoPopup(fmt::format("OpenOCD start failed: \n{}", ec.message()));
-			}
-		}
+    if (!m_is_running) {
+        if (ImGui::Button("Connect")) {
+            if (m_connect_cb) {
+                auto ec = m_connect_cb(
+                        OpenOcd::INTERFACE_LIST[m_intf_index].second,
+                        "target/" + m_target_combo.currentItem() + ".cfg");
+                if (ec) {
+                    Popup::showInfo(fmt::format("OpenOCD start failed: \n{}", ec.message()));
+                }
+            }
+        }
+    } else {
+        if (ImGui::Button("Terminate")) {
+            if (m_terminate_cb) {
+                m_terminate_cb();
+            }
+        }
+    }
 }
 
-void Sidebar::setConnectCallback(ConnectCallback f)
-{
-	m_connect_cb = f;
+void Sidebar::setConnectCallback(ConnectCallback &&f) {
+    m_connect_cb = f;
+}
+
+void Sidebar::setTerminateCallback(TerminateCallback &&f) {
+    m_terminate_cb = f;
 }
 
 } // OpenScope

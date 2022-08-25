@@ -56,7 +56,7 @@ void Popup::drawContent() {
     }
 }
 
-void Popup::showInfoPopup(const std::string &message) {
+void Popup::showInfo(const std::string &message) {
     s_popup_message = message;
     s_open_info = true;
 }

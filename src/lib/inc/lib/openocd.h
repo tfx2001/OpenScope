@@ -22,7 +22,9 @@
 #include <vector>
 #include <thread>
 
+#ifdef _MSC_VER
 #include <SDKDDKVer.h>
+#endif
 #include <boost/process.hpp>
 
 namespace OpenScope {
@@ -31,25 +33,26 @@ namespace bp = boost::process;
 
 class OpenOcd {
 public:
-	using MsgAvaliableCallback = std::function<void(std::string&&)>;
+    using MsgAvaliableCallback = std::function<void(std::string &&)>;
 
-	OpenOcd() = default;
-	~OpenOcd();
+    OpenOcd() = default;
+    ~OpenOcd();
 
-	static const std::array<std::pair<const char*, const char*>, 3> INTERFACE_LIST;
-	static std::vector<std::string> listTarget();
+    static const std::array<std::pair<const char *, const char *>, 3> INTERFACE_LIST;
+    static std::vector<std::string> listTarget();
 
-	std::error_code startProcess(const std::string& intf, const std::string& target, MsgAvaliableCallback&& cb);
-	void wait();
+    void setNewMsgCallback(const MsgAvaliableCallback &cb);
+    std::error_code startProcess(const std::string &intf, const std::string &target);
+    void wait();
+    void terminate();
 
 private:
-	bp::child m_process;
-	std::unique_ptr<bp::ipstream> m_read_stream;
-	std::thread m_thread;
-	MsgAvaliableCallback m_cb;
-	bool m_is_running;
+    bp::child m_process;
+    std::unique_ptr<bp::ipstream> m_read_stream;
+    std::thread m_thread;
+    MsgAvaliableCallback m_cb;
 
-	void threadEntry();
+    void threadEntry();
 };
 
 }

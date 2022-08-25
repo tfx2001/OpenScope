@@ -17,81 +17,92 @@
 #include "lib/openocd.h"
 
 #include <iostream>
-#include <csignal>
 #include <memory>
 
-#include <boost/process/windows.hpp>
-
 #include "lib/fs.h"
+#include "lib/event.hpp"
+
+#ifdef _WIN32
+#include <boost/process/windows.hpp>
+#endif
 
 namespace OpenScope {
 
-constexpr std::array<std::pair<const char*, const char*>, 3> OpenOcd::INTERFACE_LIST = {
-		{{"CMSIS-DAP", "interface/cmsis-dap.cfg"},
-		 {"ST-Link",   "interface/stlink.cfg"},
-		 {"J-Link",    "interface/jlink.cfg"}} };
+constexpr std::array<std::pair<const char *, const char *>, 3> OpenOcd::INTERFACE_LIST = {
+        {{"CMSIS-DAP", "interface/cmsis-dap.cfg"},
+         {"ST-Link", "interface/stlink.cfg"},
+         {"J-Link", "interface/jlink.cfg"}}};
 
 OpenOcd::~OpenOcd() {
-	if (m_process.running())
-		m_process.terminate();
-	wait();
+    if (m_process.running())
+        m_process.terminate();
+    wait();
 }
 
 std::vector<std::string> OpenOcd::listTarget() {
-	std::vector<std::string> result;
-#ifdef _DEBUG
-	std::string target_script_path(
-		bp::search_path("openocd").remove_filename().generic_string() + "/../scripts/target");
+    std::vector<std::string> result;
+#if !defined(NDEBUG) && defined(_WIN32)
+    std::string target_script_path(
+            bp::search_path("openocd").remove_filename().generic_string() + "/../scripts/target");
 #else
-	std::string target_script_path("./openocd/script/target");
+    std::string target_script_path("/usr/share/openocd/scripts/target");
 #endif
-	for (auto&& f : fs::listDirectory(target_script_path)) {
-		auto filename = f.stem().generic_string();
-		result.push_back(filename);
-	}
-	return result;
+
+    for (auto &&f: fs::listDirectory(target_script_path)) {
+        auto filename = f.stem().generic_string();
+        result.push_back(filename);
+    }
+    return result;
 }
 
-std::error_code OpenOcd::startProcess(const std::string& intf,
-	const std::string& target,
-	MsgAvaliableCallback&& cb) {
-	std::error_code ec;
+void OpenOcd::setNewMsgCallback(const MsgAvaliableCallback &cb) {
+    m_cb = cb;
+}
 
-#ifdef _DEBUG
-	std::string exec_path(bp::search_path("openocd").generic_string());
+std::error_code OpenOcd::startProcess(const std::string &intf, const std::string &target) {
+    std::error_code ec;
+#if !defined(NDEBUG) || defined(unix)
+    std::string exec_path(bp::search_path("openocd").generic_string());
 #else
-	std::string exec_path("./openocd/bin/openocd");
+    std::string exec_path("./openocd/bin/openocd");
 #endif
 
-	m_cb = cb;
+    wait();
 
-	m_read_stream = std::make_unique<bp::ipstream>();
-	m_process = bp::child(exec_path,
-		"-f", intf, "-f", target,
-		bp::std_out > *m_read_stream, bp::std_err > *m_read_stream, bp::std_in < bp::null, ec);
+    m_read_stream = std::make_unique<bp::ipstream>();
+    m_process = bp::child(exec_path,
+                          "-f", intf, "-f", target, bp::std_err > *m_read_stream,
+#ifdef _WIN32
+                          bp::windows::hide,
+#endif
+                          ec);
 
-	if (!ec) {
-		m_thread = std::thread([&] { this->threadEntry(); });
-	}
-
-	return ec;
+    if (!ec) {
+        m_thread = std::thread([&] { this->threadEntry(); });
+    }
+    return ec;
 }
 
 void OpenOcd::wait() {
-	m_thread.join();
+    if (m_thread.joinable())
+        m_thread.join();
 }
 
-void OpenOcd::threadEntry()
-{
-	std::string line;
+void OpenOcd::terminate() {
+    if (m_process.running()) m_process.terminate();
+}
 
-	m_is_running = true;
+void OpenOcd::threadEntry() {
+    std::string line;
 
-	while (std::getline(*m_read_stream.get(), line) && !line.empty()) {
-		m_cb(std::move(line));
-	}
+    EventManager::post<OpenOcdStart>();
 
-	m_is_running = false;
+
+    while (std::getline(*m_read_stream, line) && !line.empty()) {
+        m_cb(std::move(line));
+    }
+
+    EventManager::post<OpenOcdExit>();
 }
 
 }

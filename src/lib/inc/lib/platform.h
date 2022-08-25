@@ -20,7 +20,6 @@
 namespace OpenScope::platform {
 
 
-
 }
 
 #endif //OPENSCOPE_PLATFORM_H
