@@ -1,0 +1,20 @@
+{
+  "name": "openscope",
+  "version-string": "0.1.0",
+  "dependencies": [
+    {
+      "name": "imgui",
+      "default-features": false,
+      "features": [
+        "docking-experimental",
+        "opengl3-binding",
+        "glfw-binding"
+      ]
+    },
+    "glfw3",
+    "boost-process",
+    "boost-asio",
+    "fmt",
+    "elfio"
+  ]
+}
