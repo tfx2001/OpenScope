@@ -8,8 +8,8 @@
 
 namespace OpenScope {
 
-Console::Console(std::string name) :
-        Widget(std::move(name), true),
+Console::Console(std::string name, bool is_window) :
+        Widget(std::move(name), is_window),
         m_scroll_down(false) {}
 
 void Console::drawContent() {
@@ -19,10 +19,7 @@ void Console::drawContent() {
     ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1);
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
 
-    ImGuiListClipper clipper(static_cast<int>(m_message.size()));
-    while (clipper.Step())
-        for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; i++)
-            ImGui::TextUnformatted(m_message[i].c_str());
+    ImGui::TextWrapped(m_message.c_str());
 
     if (m_scroll_down)
         ImGui::SetScrollHereY();
@@ -32,10 +29,10 @@ void Console::drawContent() {
     ImGui::PopStyleColor();
 }
 
-void Console::appendLine(std::string &&output) {
+void Console::append(std::string &&output) {
     std::lock_guard guard(m_lock);
 
-    m_message.push_back(output);
+    m_message.append(output);
     m_scroll_down = true;
 }
 

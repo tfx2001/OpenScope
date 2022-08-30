@@ -28,6 +28,7 @@
 #include "widget/sidebar.h"
 #include "widget/popup.h"
 #include "widget/console.h"
+#include "widget/rtt_viewer.h"
 
 namespace OpenScope {
 
@@ -58,6 +59,7 @@ private:
     Sidebar m_sidebar;
     Popup m_popup;
     Console m_console;
+    RttViewer m_rtt_viewer;
 
     OpenOcd m_openocd;
 };

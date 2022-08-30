@@ -16,16 +16,18 @@
 
 #include "widget/popup.h"
 
-#include <utility>
-
 #include <imgui.h>
+#include <icu.h>
 
 #include "lib/event.hpp"
 
 namespace OpenScope {
 
-std::string Popup::s_popup_message;
+std::string Popup::s_info_message;
+std::string Popup::s_error_message;
+
 bool Popup::s_open_info;
+bool Popup::s_open_error;
 
 Popup::Popup() : Widget("Popup") {
     EventManager::subscribe<DrawEvent>(this, [this] { this->drawContent(); });
@@ -41,13 +43,28 @@ void Popup::drawContent() {
     if (s_open_info) {
         ImGui::OpenPopup("Info");
         s_open_info = false;
+    } else if (s_open_error) {
+        ImGui::OpenPopup("Error");
+        s_open_error = false;
     }
 
     // Info popup
     ImGui::SetNextWindowSizeConstraints(ImVec2(300, 100), ImVec2(600, 300));
     ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
     if (ImGui::BeginPopupModal("Info", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
-        ImGui::TextWrapped("%s", s_popup_message.c_str());
+        ImGui::TextWrapped(s_info_message.c_str());
+        ImGui::NewLine();
+        ImGui::Separator();
+        if (ImGui::Button("Ok") || ImGui::IsKeyDown(ImGuiKey_Escape))
+            ImGui::CloseCurrentPopup();
+        ImGui::EndPopup();
+    }
+
+    // Error popup
+    ImGui::SetNextWindowSizeConstraints(ImVec2(300, 100), ImVec2(600, 300));
+    ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+    if (ImGui::BeginPopupModal("Error", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+        ImGui::TextWrapped(s_error_message.c_str());
         ImGui::NewLine();
         ImGui::Separator();
         if (ImGui::Button("Ok") || ImGui::IsKeyDown(ImGuiKey_Escape))
@@ -57,8 +74,23 @@ void Popup::drawContent() {
 }
 
 void Popup::showInfo(const std::string &message) {
-    s_popup_message = message;
+    s_info_message = message;
     s_open_info = true;
+}
+
+void Popup::showError(const std::error_code &ec) {
+    UErrorCode status;
+
+    const std::string &message = ec.message();
+    std::vector<char> buf(message.size() / 2 * 3);
+    // For windows charset conversion
+    const int size = ucnv_convert("utf-8", "cp936",
+                                  &buf[0], static_cast<int>(buf.size()),
+                                  message.c_str(), static_cast<int>(message.size()),
+                                  &status);
+
+    s_error_message = std::string(&buf[0], size);
+    s_open_error = true;
 }
 
 }

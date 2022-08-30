@@ -33,14 +33,19 @@ Sidebar::Sidebar() :
         m_target_combo.addItem(std::move(filename));
     }
 
-    EventManager::subscribe<OpenOcdStart>([&] {
+    EventManager::subscribe<OpenOcdStart>(this, [&] {
       std::lock_guard lock(m_lock);
       m_is_running = true;
     });
-    EventManager::subscribe<OpenOcdExit>([&] {
+    EventManager::subscribe<OpenOcdExit>(this, [&] {
       std::lock_guard lock(m_lock);
       m_is_running = false;
     });
+}
+
+Sidebar::~Sidebar() {
+    EventManager::unsubscribe<OpenOcdStart>(this);
+    EventManager::unsubscribe<OpenOcdExit>(this);
 }
 
 void Sidebar::drawContent() {
@@ -52,6 +57,7 @@ void Sidebar::drawContent() {
     }, nullptr, static_cast<int>(OpenOcd::INTERFACE_LIST.size()));
     m_target_combo.drawContent();
 
+    ImGui::Spacing();
     if (!m_is_running) {
         if (ImGui::Button("Connect")) {
             if (m_connect_cb) {
@@ -59,7 +65,7 @@ void Sidebar::drawContent() {
                         OpenOcd::INTERFACE_LIST[m_intf_index].second,
                         "target/" + m_target_combo.currentItem() + ".cfg");
                 if (ec) {
-                    Popup::showInfo(fmt::format("OpenOCD start failed: \n{}", ec.message()));
+                    Popup::showError(ec);
                 }
             }
         }
@@ -72,11 +78,11 @@ void Sidebar::drawContent() {
     }
 }
 
-void Sidebar::setConnectCallback(ConnectCallback &&f) {
+void Sidebar::setConnectCallback(const ConnectCallback &f) {
     m_connect_cb = f;
 }
 
-void Sidebar::setTerminateCallback(TerminateCallback &&f) {
+void Sidebar::setTerminateCallback(const TerminateCallback &f) {
     m_terminate_cb = f;
 }
 

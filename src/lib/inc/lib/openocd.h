@@ -26,10 +26,14 @@
 #include <SDKDDKVer.h>
 #endif
 #include <boost/process.hpp>
+#include <boost/asio.hpp>
 
 namespace OpenScope {
 
 namespace bp = boost::process;
+namespace asio = boost::asio;
+
+using boost::asio::ip::tcp;
 
 class OpenOcd {
 public:
@@ -41,21 +45,26 @@ public:
     static const std::array<std::pair<const char *, const char *>, 3> INTERFACE_LIST;
     static std::vector<std::string> listTarget();
 
-    void setNewMsgCallback(const MsgAvaliableCallback &cb);
+    void setOpenOcdMsgCallback(const MsgAvaliableCallback &cb);
+    void setRttMsgCallback(const MsgAvaliableCallback &cb);
     std::error_code startProcess(const std::string &intf, const std::string &target);
+    std::error_code startRtt(uint32_t start, uint32_t size);
     void wait();
     void terminate();
 
 private:
     bp::child m_process;
+    asio::io_context m_io_context;
     std::unique_ptr<bp::ipstream> m_read_stream;
-    std::thread m_thread;
-    MsgAvaliableCallback m_cb;
+    std::thread m_openocd_thread;
+    std::thread m_rtt_thread;
+    MsgAvaliableCallback m_opencod_cb;
+    MsgAvaliableCallback m_rtt_cb;
 
-    void threadEntry();
+    void openocdThread();
+    void rttThread(int port);
 };
 
 }
-
 
 #endif //OPENSCOPE_OPENOCD_H

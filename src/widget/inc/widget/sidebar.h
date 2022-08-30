@@ -32,11 +32,11 @@ public:
     using TerminateCallback = std::function<void()>;
 
     Sidebar();
-    ~Sidebar() = default;
+    ~Sidebar();
 
     void drawContent() override;
-    void setConnectCallback(ConnectCallback &&f);
-    void setTerminateCallback(TerminateCallback &&f);
+    void setConnectCallback(const ConnectCallback &f);
+    void setTerminateCallback(const TerminateCallback &f);
 
     static constexpr char WINDOW_NAME[] = "Debug Configuration";
 

@@ -15,7 +15,7 @@ set(CMAKE_TOOLCHAIN_FILE $ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake)
 project(openscope)
 
 if(MSVC)
-    # include(cmake/msvc.cmake)
+    include(cmake/msvc.cmake)
 endif()
 
 find_package(imgui CONFIG REQUIRED)

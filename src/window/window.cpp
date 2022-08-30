@@ -22,10 +22,12 @@
 #include <fmt/format.h>
 
 #include "font/OpenSans-Regular.hpp"
+#include "font/SourceHanSansCN-Regular_min.hpp"
 
 namespace OpenScope {
 
-Window::Window() : m_console(Console::OPENOCD_WINDOW_NAME) {
+Window::Window() :
+        m_console(Console::OPENOCD_WINDOW_NAME, true) {
     this->initGLFW();
     this->initImGui();
 
@@ -35,7 +37,13 @@ Window::Window() : m_console(Console::OPENOCD_WINDOW_NAME) {
       return m_openocd.startProcess(intf, target);
     });
     m_sidebar.setTerminateCallback([&] { m_openocd.terminate(); });
-    m_openocd.setNewMsgCallback([&](auto &&msg) { m_console.appendLine(std::forward<std::string>(msg)); });
+
+    m_openocd.setOpenOcdMsgCallback([&](auto &&msg) { m_console.append(std::forward<std::string>(msg)); });
+    m_openocd.setRttMsgCallback([&](auto &&msg) { m_rtt_viewer.append(std::forward<std::string>(msg)); });
+
+    m_rtt_viewer.setStartCallback([&](uint32_t start, uint32_t size) {
+      return m_openocd.startRtt(start, size);
+    });
 }
 
 Window::~Window() {
@@ -163,23 +171,23 @@ void Window::createFullScreenDockSpace() {
     ImGuiViewport *viewport = ImGui::GetMainViewport();
     ImGui::SetNextWindowPos(viewport->Pos);
 
-    ImVec2 viewportSize = viewport->Size;
-    ImGui::SetNextWindowSize(viewportSize);
+    ImVec2 viewport_size = viewport->Size;
+    ImGui::SetNextWindowSize(viewport_size);
     ImGui::SetNextWindowViewport(viewport->ID);
     ImGui::SetNextWindowBgAlpha(0.0f);
 
-    ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoDocking;
-    windowFlags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize |
-                   ImGuiWindowFlags_NoMove;
-    windowFlags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
-    windowFlags |= ImGuiWindowFlags_MenuBar;
+    ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDocking;
+    window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize |
+                    ImGuiWindowFlags_NoMove;
+    window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
+    //    window_flags |= ImGuiWindowFlags_MenuBar;
 
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
     static bool p_open = true;
-    std::string windowsTitle = "Main window (title bar invisible)";
-    ImGui::Begin(windowsTitle.c_str(), &p_open, windowFlags);
+    std::string window_title = "Main window (title bar invisible)";
+    ImGui::Begin(window_title.c_str(), &p_open, window_flags);
     ImGui::PopStyleVar(3);
     ImGuiID dockSpaceId = ImGui::GetID(MAIN_DOCKSPACE_ID);
     ImGui::DockSpace(dockSpaceId, ImVec2(0.0f, 0.0f), 0);
@@ -199,31 +207,37 @@ void Window::loadFont() {
     // OpenSans
     io.Fonts->AddFontFromMemoryTTF((void *) OpenScope::OpenSans_Regular_data,
                                    OpenScope::OpenSans_Regular_size, 18, &config);
+    // FontAwesome 5
     Widget::loadIconFont(16);
-
+    // SourceHanSans
+    config.MergeMode = true;
+    io.Fonts->AddFontFromMemoryTTF((void *) OpenScope::SourceHanSansCN_Regular_min,
+                                   OpenScope::SourceHanSansCN_Regular_min_size, 18, &config,
+                                   io.Fonts->GetGlyphRangesChineseFull());
     ImGui_ImplOpenGL3_DestroyFontsTexture();
     ImGui_ImplOpenGL3_CreateFontsTexture();
 }
 
 void Window::resetLayout() {
-    ImGuiID dockSpaceId = ImGui::GetID(MAIN_DOCKSPACE_ID);
+    ImGuiID dock_space_id = ImGui::GetID(MAIN_DOCKSPACE_ID);
 
-    ImGui::DockBuilderRemoveNode(dockSpaceId);
-    ImGui::DockBuilderAddNode(dockSpaceId, ImGuiDockNodeFlags_DockSpace);
-    ImGui::DockBuilderSetNodeSize(dockSpaceId, ImGui::GetMainViewport()->Size);
+    ImGui::DockBuilderRemoveNode(dock_space_id);
+    ImGui::DockBuilderAddNode(dock_space_id, ImGuiDockNodeFlags_DockSpace);
+    ImGui::DockBuilderSetNodeSize(dock_space_id, ImGui::GetMainViewport()->Size);
 
-    ImGuiID sidebarId;
-    ImGuiID mainWindowId;
-    ImGuiID openocdOutputId;
+    ImGuiID sidebar;
+    ImGuiID main_window;
+    ImGuiID openocd_output;
 
-    sidebarId = ImGui::DockBuilderSplitNode(
-            dockSpaceId, ImGuiDir_Left, 0.25f, nullptr, &mainWindowId);
-    openocdOutputId = ImGui::DockBuilderSplitNode(
-            mainWindowId, ImGuiDir_Down, 0.25f, nullptr, &mainWindowId);
+    sidebar = ImGui::DockBuilderSplitNode(
+            dock_space_id, ImGuiDir_Left, 0.25f, nullptr, &main_window);
+    openocd_output = ImGui::DockBuilderSplitNode(
+            main_window, ImGuiDir_Down, 0.25f, nullptr, &main_window);
 
-    ImGui::DockBuilderDockWindow(Sidebar::WINDOW_NAME, sidebarId);
-    ImGui::DockBuilderDockWindow(Console::OPENOCD_WINDOW_NAME, openocdOutputId);
-    ImGui::DockBuilderFinish(dockSpaceId);
+    ImGui::DockBuilderDockWindow(Sidebar::WINDOW_NAME, sidebar);
+    ImGui::DockBuilderDockWindow(Console::OPENOCD_WINDOW_NAME, openocd_output);
+    ImGui::DockBuilderDockWindow(RttViewer::WINDOW_NAME, main_window);
+    ImGui::DockBuilderFinish(dock_space_id);
 }
 
 } // OpenScope

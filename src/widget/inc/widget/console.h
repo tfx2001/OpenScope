@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 
+#ifndef OPENSCOPE_CONSOLE_H
+#define OPENSCOPE_CONSOLE_H
+
 #include "widget/widget.h"
 
 #include <string>
@@ -24,18 +27,20 @@ namespace OpenScope {
 
 class Console : public Widget {
 public:
-    explicit Console(std::string name);
+    explicit Console(std::string name, bool is_window = false);
     ~Console() = default;
 
     void drawContent() override;
-    void appendLine(std::string &&output);
+    void append(std::string &&output);
 
     static constexpr char OPENOCD_WINDOW_NAME[] = "OpenOCD Output";
 
 private:
-    std::vector<std::string> m_message;
+    std::string m_message;
     bool m_scroll_down;
     std::mutex m_lock;
 };
 
-}
+} // OpenScope
+
+#endif //OPENSCOPE_CONSOLE_H
