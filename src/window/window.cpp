@@ -38,12 +38,13 @@ Window::Window() :
     });
     m_sidebar.setTerminateCallback([&] { m_openocd.terminate(); });
 
-    m_openocd.setOpenOcdMsgCallback([&](auto &&msg) { m_console.append(std::forward<std::string>(msg)); });
+    m_openocd.setOpenOcdMsgCallback([&](auto &&msg) { m_console.appendLine(std::forward<std::string>(msg)); });
     m_openocd.setRttMsgCallback([&](auto &&msg) { m_rtt_viewer.append(std::forward<std::string>(msg)); });
 
     m_rtt_viewer.setStartCallback([&](uint32_t start, uint32_t size) {
       return m_openocd.startRtt(start, size);
     });
+    m_rtt_viewer.setStopCallback([&] { m_openocd.stopRtt(); });
 }
 
 Window::~Window() {

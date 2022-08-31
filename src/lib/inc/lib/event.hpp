@@ -142,6 +142,8 @@ EVENT_DEF(WindowCreate, const std::string&);
 // OpenOCD event
 EVENT_DEF(OpenOcdStart);
 EVENT_DEF(OpenOcdExit);
+EVENT_DEF(RttStart);
+EVENT_DEF(RttExit);
 // Event for test
 EVENT_DEF(TestEvent1, int);
 EVENT_DEF(TestEvent2, int);

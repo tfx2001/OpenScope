@@ -14,33 +14,21 @@
  * limitations under the License.
  */
 
-#ifndef OPENSCOPE_CONSOLE_H
-#define OPENSCOPE_CONSOLE_H
+#ifndef OPENSCOPE_SYMBOL_TABLE_H
+#define OPENSCOPE_SYMBOL_TABLE_H
 
 #include "widget/widget.h"
 
-#include <string>
-#include <vector>
-#include <mutex>
-
 namespace OpenScope {
 
-class Console : public Widget {
+class SymbolTable : public Widget {
 public:
-    explicit Console(std::string name, bool is_window = false);
-    ~Console() = default;
+    explicit SymbolTable(std::string name);
+    ~SymbolTable() = default;
 
     void drawContent() override;
-    void appendLine(std::string &&output);
-
-    static constexpr char OPENOCD_WINDOW_NAME[] = "OpenOCD Output";
-
-private:
-    std::vector<std::string> m_message;
-    bool m_scroll_down;
-    std::mutex m_lock;
 };
 
 } // OpenScope
 
-#endif //OPENSCOPE_CONSOLE_H
+#endif //OPENSCOPE_SYMBOL_TABLE_H

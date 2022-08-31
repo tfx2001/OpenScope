@@ -49,6 +49,7 @@ public:
     void setRttMsgCallback(const MsgAvaliableCallback &cb);
     std::error_code startProcess(const std::string &intf, const std::string &target);
     std::error_code startRtt(uint32_t start, uint32_t size);
+    void stopRtt();
     void wait();
     void terminate();
 

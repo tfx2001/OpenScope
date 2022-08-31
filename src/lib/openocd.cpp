@@ -28,6 +28,7 @@
 #ifdef _WIN32
 #include <boost/process/windows.hpp>
 #endif
+#include <boost/algorithm/string.hpp>
 
 namespace OpenScope {
 
@@ -89,16 +90,14 @@ std::error_code OpenOcd::startProcess(const std::string &intf, const std::string
 }
 
 std::error_code OpenOcd::startRtt(uint32_t start, uint32_t size) {
-    boost::system::error_code ec;
     tcp::socket s(m_io_context);
-
     tcp::endpoint ep(asio::ip::address::from_string("127.0.0.1"), 4444);
-    s.connect(ep, ec);
 
-    if (!ec) {
+    try {
+        s.connect(ep);
+
         std::string buf;
         std::size_t n;
-
         n = asio::read_until(s, asio::dynamic_buffer(buf), '\n');
         buf.erase(0, n);
         s.write_some(asio::buffer(fmt::format("rtt setup {} {} SEGGER\\ RTT; rtt stop; rtt start;\r", start, size)));
@@ -110,7 +109,7 @@ std::error_code OpenOcd::startRtt(uint32_t start, uint32_t size) {
         n = asio::read_until(s, asio::dynamic_buffer(buf), '\n');
         if (buf.find("at") != std::string::npos) {
             buf.erase(0, n);
-            s.write_some(asio::buffer("rtt server start 0 0; exit;\r"));
+            s.write_some(asio::buffer("rtt server stop 0; rtt server start 0 0; exit;\r"));
             n = asio::read_until(s, asio::dynamic_buffer(buf), '\n');
             buf.erase(0, n);
             n = asio::read_until(s, asio::dynamic_buffer(buf), '\n');
@@ -118,6 +117,9 @@ std::error_code OpenOcd::startRtt(uint32_t start, uint32_t size) {
             std::regex port_regex("\\d+");
             std::smatch m;
             if (std::regex_search(buf, m, port_regex)) {
+                // Wait last thread exit
+                if (m_rtt_thread.joinable()) m_rtt_thread.join();
+                // Start new thread for rtt
                 m_rtt_thread = std::thread(&OpenOcd::rttThread, this, std::stoi(m[0]));
             }
         } else {
@@ -126,8 +128,30 @@ std::error_code OpenOcd::startRtt(uint32_t start, uint32_t size) {
             n = asio::read_until(s, asio::dynamic_buffer(buf), '\n');
         }
         s.close();
+        return std::error_code();
     }
-    return ec;
+    catch (const boost::system::system_error &error) {
+        s.close();
+        return std::error_code(error.code());
+    }
+}
+
+void OpenScope::OpenOcd::stopRtt() {
+    boost::system::error_code ec;
+    tcp::socket s(m_io_context);
+
+    tcp::endpoint ep(asio::ip::address::from_string("127.0.0.1"), 4444);
+    s.connect(ep, ec);
+
+    std::string buf;
+    std::size_t n;
+    // Read OpenOCD banner
+    n = asio::read_until(s, asio::dynamic_buffer(buf), '\n');
+    buf.erase(0, n);
+    asio::write(s, asio::buffer("rtt server stop 0;\r"));
+    n = asio::read_until(s, asio::dynamic_buffer(buf), '\n');
+    buf.erase(0, n);
+    s.close();
 }
 
 void OpenOcd::wait() {
@@ -138,7 +162,8 @@ void OpenOcd::wait() {
 }
 
 void OpenOcd::terminate() {
-    if (m_process.running()) m_process.terminate();
+    if (m_process.running())
+        m_process.terminate();
 }
 
 void OpenOcd::openocdThread() {
@@ -146,7 +171,6 @@ void OpenOcd::openocdThread() {
 
     EventManager::post<OpenOcdStart>();
     while (std::getline(*m_read_stream.get(), line)) {
-        line.push_back('\n');
         m_opencod_cb(std::move(line));
     }
     EventManager::post<OpenOcdExit>();
@@ -159,17 +183,19 @@ void OpenOcd::rttThread(int port) {
     tcp::endpoint ep(asio::ip::address::from_string("127.0.0.1"), port);
     s.connect(ep, ec);
 
-    char buf[128];
+    EventManager::post<RttStart>();
+    std::string buf;
     size_t n;
     try {
         s.write_some(asio::buffer("begin"));
-        while (n = s.read_some(asio::buffer(buf, sizeof(buf) - 1))) {
-            buf[n] = '\0';
-            m_rtt_cb(buf);
+        while (n = asio::read_until(s, asio::dynamic_buffer(buf), '\n')) {
+            m_rtt_cb(boost::algorithm::trim_copy(buf.substr(0, n)));
+            buf.erase(0, n);
         }
     }
     catch (const boost::system::system_error &) {
         s.close();
+        EventManager::post<RttExit>();
     }
 }
 

@@ -19,7 +19,10 @@ void Console::drawContent() {
     ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1);
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
 
-    ImGui::TextWrapped(m_message.c_str());
+    ImGuiListClipper clipper(static_cast<int>(m_message.size()));
+    while (clipper.Step())
+        for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; i++)
+            ImGui::TextUnformatted(m_message[i].c_str());
 
     if (m_scroll_down)
         ImGui::SetScrollHereY();
@@ -29,10 +32,10 @@ void Console::drawContent() {
     ImGui::PopStyleColor();
 }
 
-void Console::append(std::string &&output) {
+void Console::appendLine(std::string &&output) {
     std::lock_guard guard(m_lock);
 
-    m_message.append(output);
+    m_message.push_back(output);
     m_scroll_down = true;
 }
 
