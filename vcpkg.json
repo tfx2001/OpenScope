@@ -15,6 +15,7 @@
     "boost-process",
     "boost-asio",
     "fmt",
-    "elfio"
+    "elfio",
+    "libiconv"
   ]
 }

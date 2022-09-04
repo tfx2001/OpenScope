@@ -23,6 +23,7 @@ find_package(glfw3 CONFIG REQUIRED)
 find_package(fmt CONFIG REQUIRED)
 find_package(Boost REQUIRED COMPONENTS filesystem)
 find_package(elfio CONFIG REQUIRED)
+find_package(Iconv REQUIRED)
 
 set(CMAKE_CXX_STANDARD 17)
 

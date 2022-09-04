@@ -17,7 +17,7 @@
 #include "widget/popup.h"
 
 #include <imgui.h>
-#include <icu.h>
+#include <iconv.h>
 
 #include "lib/event.hpp"
 
@@ -64,7 +64,7 @@ void Popup::drawContent() {
     ImGui::SetNextWindowSizeConstraints(ImVec2(300, 100), ImVec2(600, 300));
     ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
     if (ImGui::BeginPopupModal("Error", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
-        ImGui::TextWrapped(s_error_message.c_str());
+        ImGui::TextWrapped("%s", s_error_message.c_str());
         ImGui::NewLine();
         ImGui::Separator();
         if (ImGui::Button("Ok") || ImGui::IsKeyDown(ImGuiKey_Escape))
@@ -79,17 +79,20 @@ void Popup::showInfo(const std::string &message) {
 }
 
 void Popup::showError(const std::error_code &ec) {
-    UErrorCode status;
-
     const std::string &message = ec.message();
     std::vector<char> buf(message.size() / 2 * 3);
-    // For windows charset conversion
-    const int size = ucnv_convert("utf-8", "cp936",
-                                  &buf[0], static_cast<int>(buf.size()),
-                                  message.c_str(), static_cast<int>(message.size()),
-                                  &status);
 
-    s_error_message = std::string(&buf[0], size);
+    // For windows charset conversion
+    char* inbuf = const_cast<char*>(message.c_str());
+    size_t insize = message.size();
+    char* outbuf = &buf[0];
+    size_t outsize = message.size() / 2 * 3;
+
+    iconv_t conv = iconv_open("utf-8", "cp936");
+    iconv(conv, &inbuf, &insize, &outbuf, &outsize);
+    iconv_close(conv);
+
+    s_error_message = std::string(buf.begin(), buf.end());
     s_open_error = true;
 }
 
