@@ -21,6 +21,8 @@
 #include <imgui_internal.h>
 #include <fmt/format.h>
 
+#include "lib/event.hpp"
+
 #include "font/OpenSans-Regular.hpp"
 #include "font/SourceHanSansCN-Regular_min.hpp"
 
@@ -146,6 +148,7 @@ void Window::initImGui() {
     style.WindowMenuButtonPosition = ImGuiDir_None;
     style.FrameRounding = 3.0f;
     style.PopupRounding = 3.0f;
+    style.Colors[ImGuiCol_TitleBgActive] = style.Colors[ImGuiCol_TitleBg];
 
     ImGui_ImplGlfw_InitForOpenGL(this->m_window, true);
 #if defined(OS_MACOS)

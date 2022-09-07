@@ -26,9 +26,10 @@
 
 namespace OpenScope {
 
-Widget::Widget(std::string name, bool is_window) :
+Widget::Widget(std::string name, bool is_window, bool closable) :
         m_name(std::move(name)),
-        m_is_window(is_window) {
+        m_is_window(is_window),
+        m_closable(closable) {
     if (m_is_window) {
         EventManager::subscribe<DrawEvent>(this, [this] { this->drawWindow(); });
     }
@@ -39,15 +40,30 @@ Widget::~Widget() {
 }
 
 void Widget::drawWindow() {
-    if (ImGui::Begin(m_name.c_str())) {
-        drawContent();
+    if (m_closable && m_window_open) {
+        if (ImGui::Begin(m_name.c_str(), &m_window_open)) {
+            drawContent();
+        }
+        ImGui::End();
+    } else if (!m_closable) {
+        if (ImGui::Begin(m_name.c_str())) {
+            drawContent();
+        }
+        ImGui::End();
     }
-    ImGui::End();
 
     if (m_first_frame) {
         EventManager::post<WindowCreate>(m_name);
         m_first_frame = false;
     }
+}
+
+bool &Widget::getWindowOpenState() {
+    return m_window_open;
+}
+
+bool Widget::getWindowOpenState() const {
+    return m_window_open;
 }
 
 void Widget::loadIconFont(float pixel_size) {

@@ -78,14 +78,19 @@ void Popup::showInfo(const std::string &message) {
     s_open_info = true;
 }
 
+void Popup::showError(const std::string &message) {
+    s_error_message = message;
+    s_open_error = true;
+}
+
 void Popup::showError(const std::error_code &ec) {
     const std::string &message = ec.message();
     std::vector<char> buf(message.size() / 2 * 3);
 
     // For windows charset conversion
-    char* inbuf = const_cast<char*>(message.c_str());
+    char *inbuf = const_cast<char *>(message.c_str());
     size_t insize = message.size();
-    char* outbuf = &buf[0];
+    char *outbuf = &buf[0];
     size_t outsize = message.size() / 2 * 3;
 
     iconv_t conv = iconv_open("utf-8", "cp936");

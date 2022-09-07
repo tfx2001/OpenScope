@@ -25,10 +25,18 @@
 #include "lib/fs.h"
 #include "lib/event.hpp"
 
+#include <boost/process/io.hpp>
+#include <boost/process/search_path.hpp>
+#include <boost/asio/ip/tcp.hpp>
+#include <boost/asio/read_until.hpp>
+#include <boost/asio/write.hpp>
+#include <boost/algorithm/string.hpp>
+
 #ifdef _WIN32
 #include <boost/process/windows.hpp>
 #endif
-#include <boost/algorithm/string.hpp>
+
+using boost::asio::ip::tcp;
 
 namespace OpenScope {
 
@@ -44,16 +52,18 @@ OpenOcd::~OpenOcd() {
 
 std::vector<std::string> OpenOcd::listTarget() {
     std::vector<std::string> result;
-#if !defined(NDEBUG) && defined(_WIN32)
+#ifdef OS_LINUX
+    std::string target_script_path("/usr/share/openocd/scripts/target");
+#elif defined(OS_WINDOWS) && !defined(NDEBUG)
     std::string target_script_path(
             bp::search_path("openocd").remove_filename().generic_string() + "/../scripts/target");
 #else
-    std::string target_script_path("/usr/share/openocd/scripts/target");
+    std::string target_script_path("openocd/scripts/target");
 #endif
 
     for (auto &&f: fs::listDirectory(target_script_path)) {
         auto filename = f.stem().generic_string();
-        result.push_back(filename);
+        result.push_back(std::move(filename));
     }
     return result;
 }
@@ -71,7 +81,7 @@ std::error_code OpenOcd::startProcess(const std::string &intf, const std::string
 #if !defined(NDEBUG) || defined(unix)
     std::string exec_path(bp::search_path("openocd").generic_string());
 #else
-    std::string exec_path("./openocd/bin/openocd");
+    std::string exec_path("openocd/bin/openocd.exe");
 #endif
 
     wait();
@@ -80,7 +90,7 @@ std::error_code OpenOcd::startProcess(const std::string &intf, const std::string
     m_process = bp::child(exec_path,
                           "-f", intf, "-f", target, "-c", "adapter speed 10000;", bp::std_err > *m_read_stream,
 #ifdef _WIN32
-                          bp::windows::hide,
+            bp::windows::hide,
 #endif
                           ec);
     if (!ec) {
@@ -128,7 +138,7 @@ std::error_code OpenOcd::startRtt(uint32_t start, uint32_t size) {
             n = asio::read_until(s, asio::dynamic_buffer(buf), '\n');
         }
         s.close();
-        return std::error_code();
+        return {};
     }
     catch (const boost::system::system_error &error) {
         s.close();
@@ -170,33 +180,31 @@ void OpenOcd::openocdThread() {
     std::string line;
 
     EventManager::post<OpenOcdStart>();
-    while (std::getline(*m_read_stream.get(), line)) {
+    while (std::getline(*m_read_stream, line)) {
         m_opencod_cb(std::move(line));
     }
     EventManager::post<OpenOcdExit>();
 }
 
 void OpenOcd::rttThread(int port) {
-    boost::system::error_code ec;
     tcp::socket s(m_io_context);
-
     tcp::endpoint ep(asio::ip::address::from_string("127.0.0.1"), port);
-    s.connect(ep, ec);
-
-    EventManager::post<RttStart>();
     std::string buf;
     size_t n;
+
+    EventManager::post<RttStart>();
     try {
-        s.write_some(asio::buffer("begin"));
-        while (n = asio::read_until(s, asio::dynamic_buffer(buf), '\n')) {
+        s.connect(ep);
+        asio::write(s, asio::buffer("start"));
+        while ((n = asio::read_until(s, asio::dynamic_buffer(buf), '\n'))) {
             m_rtt_cb(boost::algorithm::trim_copy(buf.substr(0, n)));
             buf.erase(0, n);
         }
     }
     catch (const boost::system::system_error &) {
         s.close();
-        EventManager::post<RttExit>();
     }
+    EventManager::post<RttExit>();
 }
 
 }

@@ -1,0 +1,5 @@
+if (WIN32)
+    add_compile_definitions(OS_WINDOWS)
+elseif (UNIX AND NOT APPLE)
+    add_compile_definitions(OS_LINUX)
+endif ()

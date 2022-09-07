@@ -16,16 +16,33 @@
 
 #include "widget/symbol_table.h"
 
-#include <elfio/elfio.hpp>
+#include <imgui.h>
+#include <imgui_stdlib.h>
+#include <fmt/format.h>
+#include <libdwarf.h>
+
+#include "widget/popup.h"
+#include "lib/platform.h"
 
 namespace OpenScope {
 
 
-SymbolTable::SymbolTable(std::string name) : Widget(std::move(name)) {
+SymbolTable::SymbolTable(std::string name) : Widget(std::move(name), true, true) {
 
 }
 
 void SymbolTable::drawContent() {
+    auto path = m_path.generic_string();
+    ImGui::InputText("File", &path, ImGuiInputTextFlags_ReadOnly);
+    ImGui::SameLine();
+    if (ImGui::Button("Open")) {
+        if (platform::openFile(m_path)) {
+            loadElf();
+        }
+    }
+}
+
+void SymbolTable::loadElf() {
 
 }
 

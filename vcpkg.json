@@ -12,10 +12,6 @@
       ]
     },
     "glfw3",
-    "boost-process",
-    "boost-asio",
-    "fmt",
-    "elfio",
-    "libiconv"
+    "fmt"
   ]
 }

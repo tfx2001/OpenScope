@@ -16,9 +16,9 @@
 
 #include "lib/fs.h"
 
-namespace OpenScope::fs {
+namespace OpenScope {
 
-std::vector<fs::path> listDirectory(const fs::path &path) {
+std::vector<fs::path> fs::listDirectory(const fs::path &path) {
     std::vector<fs::path> result;
 
     try {

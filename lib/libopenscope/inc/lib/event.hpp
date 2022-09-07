@@ -17,7 +17,7 @@
 #ifndef OPENSCOPE_EVENT_HPP
 #define OPENSCOPE_EVENT_HPP
 
-#include <iostream>
+#include <string>
 #include <functional>
 #include <unordered_map>
 #include <utility>
@@ -110,7 +110,7 @@ public:
     }
 
     static void unsubscribe(SubscriptionPool::iterator iter) noexcept {
-        m_subs.erase(std::move(iter));
+        m_subs.erase(iter);
     }
 
     template<typename E>
@@ -141,11 +141,15 @@ EVENT_DEF(DrawEvent);
 EVENT_DEF(WindowCreate, const std::string&);
 // OpenOCD event
 EVENT_DEF(OpenOcdStart);
+
 EVENT_DEF(OpenOcdExit);
+
 EVENT_DEF(RttStart);
+
 EVENT_DEF(RttExit);
 // Event for test
 EVENT_DEF(TestEvent1, int);
+
 EVENT_DEF(TestEvent2, int);
 
 }

@@ -1,0 +1,39 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index c4b66df9..6d5cf051 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -327,7 +327,7 @@ message(STATUS "Building api tests   ... ${DOTESTS}")
+ find_package(LibElf REQUIRED)
+ list(APPEND CMAKE_REQUIRED_INCLUDES ${LIBELF_INCLUDE_DIRS})
+ 
+-configure_file(cmake/config.h.cmake config.h)
++configure_file(cmake/config.h.cmake ${CMAKE_BINARY_DIR}/config.h)
+ 
+ if(BUILD_NON_SHARED)
+ 	set(DWARF_TARGETS dwarf-static)
+diff --git a/src/bin/dwarfdump/CMakeLists.txt b/src/bin/dwarfdump/CMakeLists.txt
+index 6657780a..e839f510 100644
+--- a/src/bin/dwarfdump/CMakeLists.txt
++++ b/src/bin/dwarfdump/CMakeLists.txt
+@@ -49,7 +49,7 @@ set_source_group(HEADERS "Header Files"
+   ../../lib/libdwarf/libdwarf_private.h)
+ 
+ set_source_group(CONFIGURATION_FILES "Configuration Files"
+-  ${CMAKE_SOURCE_DIR}/cmake/config.h.cmake
++  ${CMAKE_CURRENT_SOURCE_DIR}/../../../cmake/config.h.cmake
+   ${CMAKE_BINARY_DIR}/config.h)
+ 	
+ add_executable(dwarfdump ${SOURCES} ${HEADERS} ${CONFIGURATION_FILES})
+diff --git a/src/lib/libdwarf/CMakeLists.txt b/src/lib/libdwarf/CMakeLists.txt
+index 37911395..009ccf8c 100644
+--- a/src/lib/libdwarf/CMakeLists.txt
++++ b/src/lib/libdwarf/CMakeLists.txt
+@@ -59,7 +59,7 @@ dwarf_macho_loader.h
+ dwarf_memcpy_swap.h)
+ 
+ set_source_group(CONFIGURATION_FILES "Configuration Files" 
+-    ${CMAKE_SOURCE_DIR}/cmake/config.h.cmake 
++    ${CMAKE_CURRENT_SOURCE_DIR}/../../../cmake/config.h.cmake 
+     ${CMAKE_BINARY_DIR}/config.h)
+ 	
+ list(LENGTH DWARF_TARGETS targetCount)

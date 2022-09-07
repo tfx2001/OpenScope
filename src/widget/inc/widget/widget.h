@@ -23,20 +23,24 @@ namespace OpenScope {
 
 class Widget {
 public:
-    explicit Widget(std::string name, bool is_window = false);
+    Widget(std::string name, bool is_window = false, bool closeable = false);
     ~Widget();
 
     void drawWindow();
     virtual void drawContent() = 0;
+    bool &getWindowOpenState();
+    bool getWindowOpenState() const;
 
     static void loadIconFont(float pixel_size);
 
 protected:
-    const std::string &getWidgetName() { return m_name; }
+    const std::string &getWidgetName() const { return m_name; }
 
 private:
     std::string m_name;
     bool m_is_window;
+    bool m_closable;
+    bool m_window_open = false;
     bool m_first_frame = true;
 };
 

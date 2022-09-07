@@ -19,6 +19,8 @@
 
 #include "widget/widget.h"
 
+#include <filesystem>
+
 namespace OpenScope {
 
 class SymbolTable : public Widget {
@@ -27,6 +29,11 @@ public:
     ~SymbolTable() = default;
 
     void drawContent() override;
+
+private:
+    void loadElf();
+
+    std::filesystem::path m_path;
 };
 
 } // OpenScope

@@ -18,7 +18,6 @@
 
 #include <imgui.h>
 #include <imgui_stdlib.h>
-#include <fmt/format.h>
 
 #include "widget/popup.h"
 #include "lib/event.hpp"
@@ -29,10 +28,13 @@ namespace OpenScope {
 RttViewer::RttViewer() :
         Widget(WINDOW_NAME, true),
         m_console("RTT Output"),
+        m_symbol_table("Symbol Select"),
         m_start_address("0x20000000"),
         m_size("128") {
     EventManager::subscribe<RttStart>(this, [&] { m_is_running = true; });
     EventManager::subscribe<RttExit>(this, [&] { m_is_running = false; });
+
+    // m_symbol_table.getWindowOpenState() = true;
 }
 
 RttViewer::~RttViewer() = default;
@@ -56,7 +58,7 @@ void RttViewer::drawContent() {
     if (!m_is_running) {
         if (ImGui::Button("Start")) {
             if (m_start_cb) {
-                if (m_start_address.size() && m_size.size()) {
+                if (!m_start_address.empty() && !m_size.empty()) {
                     auto ec = m_start_cb(std::stoi(m_start_address, nullptr, 16), std::stoi(m_size) * 1024);
                     if (ec) {
                         Popup::showError(ec);

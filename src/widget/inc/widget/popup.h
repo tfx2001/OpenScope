@@ -20,6 +20,7 @@
 #include "widget/widget.h"
 
 #include <string>
+#include <system_error>
 
 namespace OpenScope {
 
@@ -31,6 +32,7 @@ public:
     void drawContent() override;
 
     static void showInfo(const std::string &message);
+    static void showError(const std::string &message);
     static void showError(const std::error_code &ec);
 
 private:

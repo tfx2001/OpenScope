@@ -25,15 +25,15 @@
 #ifdef _MSC_VER
 #include <SDKDDKVer.h>
 #endif
-#include <boost/process.hpp>
-#include <boost/asio.hpp>
+
+#include <boost/asio/io_context.hpp>
+#include <boost/process/child.hpp>
+#include <boost/process/pipe.hpp>
 
 namespace OpenScope {
 
 namespace bp = boost::process;
 namespace asio = boost::asio;
-
-using boost::asio::ip::tcp;
 
 class OpenOcd {
 public:

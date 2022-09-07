@@ -5,12 +5,10 @@ add_executable(
 target_include_directories(${PROJECT_NAME} PRIVATE window/inc)
 
 add_subdirectory(widget)
-add_subdirectory(lib)
-
 set_target_properties(${PROJECT_NAME} PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 target_link_libraries(${PROJECT_NAME}
-        PRIVATE widget libopenscope
+        PRIVATE widget
         imgui::imgui fmt::fmt)
 
 if (UNIX)

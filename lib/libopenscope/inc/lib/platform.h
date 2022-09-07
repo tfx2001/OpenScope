@@ -17,9 +17,11 @@
 #ifndef OPENSCOPE_PLATFORM_H
 #define OPENSCOPE_PLATFORM_H
 
+#include <string>
+#include <filesystem>
+
 namespace OpenScope::platform {
-
-
+bool openFile(std::filesystem::path &path);
 }
 
 #endif //OPENSCOPE_PLATFORM_H

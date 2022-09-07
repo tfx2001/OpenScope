@@ -19,6 +19,7 @@
 
 #include "widget/widget.h"
 #include "widget/console.h"
+#include "widget/symbol_table.h"
 
 #include <functional>
 
@@ -41,6 +42,8 @@ public:
 
 private:
     Console m_console;
+    SymbolTable m_symbol_table;
+
     std::string m_start_address;
     std::string m_size;
     bool m_is_running = false;

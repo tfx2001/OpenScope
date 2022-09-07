@@ -23,7 +23,6 @@
 #include <imgui.h>
 #include <GLFW/glfw3.h>
 
-#include "lib/event.hpp"
 #include "lib/openocd.h"
 #include "widget/sidebar.h"
 #include "widget/popup.h"

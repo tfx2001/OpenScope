@@ -20,11 +20,11 @@
 
 using namespace OpenScope;
 
-int main(int, char**) {
-	OpenOcd openocd;
+int main(int, char **) {
+    OpenOcd openocd;
 
-	openocd.startProcess(OpenOcd::INTERFACE_LIST[1].second, "target/stm32h7x.cfg");
-	return 0;
+    openocd.startProcess(OpenOcd::INTERFACE_LIST[1].second, "target/stm32h7x.cfg");
+    return 0;
 }
 
 #define OPENSCOPE_TEST_OPENOCD_H
