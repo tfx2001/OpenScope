@@ -13,7 +13,8 @@ target_link_libraries(${PROJECT_NAME}
 
 if (UNIX)
     target_link_libraries(${PROJECT_NAME} PRIVATE GL)
-elseif (MSVC)
-    target_link_options(${PROJECT_NAME} PUBLIC /SUBSYSTEM:windows /ENTRY:mainCRTStartup)
+elseif (MINGW)
+    target_sources(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/res/resource.rc)
+    target_link_options(${PROJECT_NAME} PRIVATE -mwindows)
     target_link_libraries(${PROJECT_NAME} PRIVATE opengl32)
 endif ()
