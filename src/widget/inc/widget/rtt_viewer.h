@@ -27,8 +27,9 @@ namespace OpenScope {
 
 class RttViewer : public Widget {
 public:
-    using StartCallback = std::function<std::error_code(uint32_t begin, uint32_t length)>;
+    using StartCallback = std::function<std::error_code(uint32_t, uint32_t)>;
     using StopCallback = std::function<void()>;
+    using SendCallback = std::function<void(std::string &&)>;
 
     explicit RttViewer();
     ~RttViewer();
@@ -36,6 +37,7 @@ public:
     void drawContent() override;
     void setStartCallback(const StartCallback &cb);
     void setStopCallback(const StopCallback &cb);
+    void setSendCallback(const SendCallback &cb);
     void append(std::string &&msg);
 
     static constexpr char WINDOW_NAME[] = "RTT Viewer";
@@ -46,9 +48,12 @@ private:
 
     std::string m_start_address;
     std::string m_size;
+    std::string m_send_str;
     bool m_is_running = false;
+
     StartCallback m_start_cb;
     StopCallback m_stop_cb;
+    SendCallback m_send_cb;
 };
 
 } // OpenScope

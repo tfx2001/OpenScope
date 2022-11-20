@@ -41,7 +41,7 @@ RttViewer::~RttViewer() = default;
 
 void RttViewer::drawContent() {
     ImVec2 size = ImGui::GetContentRegionAvail();
-    size.y -= ImGui::GetFrameHeightWithSpacing() + ImGui::GetStyle().ItemSpacing.y * 2;
+    size.y -= ImGui::GetFrameHeightWithSpacing() * 2 + ImGui::GetStyle().ItemSpacing.y * 3;
     ImGui::BeginChild("RTT Output", size);
     m_console.drawContent();
     ImGui::EndChild();
@@ -54,25 +54,31 @@ void RttViewer::drawContent() {
     ImGui::InputText("Size (in KB)", &m_size, ImGuiInputTextFlags_CharsDecimal);
     ImGui::PopItemWidth();
     ImGui::SameLine();
-
     if (!m_is_running) {
         if (ImGui::Button("Start")) {
-            if (m_start_cb) {
-                if (!m_start_address.empty() && !m_size.empty()) {
-                    auto ec = m_start_cb(std::stoi(m_start_address, nullptr, 16), std::stoi(m_size) * 1024);
-                    if (ec) {
-                        Popup::showError(ec);
-                    }
-                } else {
-                    Popup::showInfo(
-                            "Please set the RAM begin address and size where the RTT control block is located.");
+            if (!m_start_address.empty() && !m_size.empty()) {
+                assert(m_start_cb);
+                auto ec = m_start_cb(std::stoi(m_start_address, nullptr, 16), std::stoi(m_size) * 1024);
+                if (ec) {
+                    Popup::showError(ec);
                 }
+            } else {
+                Popup::showInfo(
+                        "Please set the RAM begin address and size "
+                        "where the RTT control block is located.");
             }
         }
-    } else {
-        if (ImGui::Button("Stop")) {
-            if (m_stop_cb) m_stop_cb();
-        }
+    } else if (ImGui::Button("Stop")) {
+        assert(m_stop_cb);
+        m_stop_cb();
+    }
+
+    ImGui::Spacing();
+    ImGui::InputText("##input", &m_send_str, 0);
+    ImGui::SameLine();
+    if (ImGui::Button(("Send"))) {
+        assert(m_send_cb);
+        m_send_cb(std::move(m_send_str));
     }
 }
 
@@ -82,6 +88,10 @@ void RttViewer::setStartCallback(const StartCallback &cb) {
 
 void RttViewer::setStopCallback(const StopCallback &cb) {
     m_stop_cb = cb;
+}
+
+void RttViewer::setSendCallback(const RttViewer::SendCallback &cb) {
+    m_send_cb = cb;
 }
 
 void RttViewer::append(std::string &&msg) {

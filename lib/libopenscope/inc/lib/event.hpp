@@ -140,9 +140,9 @@ EVENT_DEF(DrawEvent);
 // Widget event
 EVENT_DEF(WindowCreate, const std::string&);
 // OpenOCD event
-EVENT_DEF(OpenOcdStart);
+EVENT_DEF(ProbeOpen);
 
-EVENT_DEF(OpenOcdExit);
+EVENT_DEF(ProbeClose);
 
 EVENT_DEF(RttStart);
 

@@ -26,7 +26,6 @@ find_package(Iconv REQUIRED)
 
 set(CMAKE_CXX_STANDARD 17)
 
-add_subdirectory(lib/libdwarf)
 add_subdirectory(lib/libopenscope)
 add_subdirectory(src)
 add_subdirectory(test)

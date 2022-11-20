@@ -19,7 +19,6 @@
 #include <imgui.h>
 #include <imgui_stdlib.h>
 #include <fmt/format.h>
-#include <libdwarf.h>
 
 #include "widget/popup.h"
 #include "lib/platform.h"

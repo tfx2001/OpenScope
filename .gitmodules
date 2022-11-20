@@ -1,0 +1,3 @@
+[submodule "lib/libopenscope/cmake/corrosion"]
+	path = lib/libopenscope/cmake/corrosion
+	url = https://github.com/corrosion-rs/corrosion

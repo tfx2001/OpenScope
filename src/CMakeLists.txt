@@ -11,6 +11,10 @@ target_link_libraries(${PROJECT_NAME}
         PRIVATE widget
         imgui::imgui fmt::fmt)
 
+if (NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
+    target_link_options(${PROJECT_NAME} PRIVATE -s)
+endif()
+
 if (UNIX)
     target_link_libraries(${PROJECT_NAME} PRIVATE GL)
 elseif (MINGW)

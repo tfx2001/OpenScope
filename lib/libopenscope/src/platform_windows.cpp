@@ -26,7 +26,7 @@ namespace OpenScope {
 
 bool platform::openFile(std::filesystem::path &path) {
     OPENFILENAME ofn;
-    wchar_t szFile[260] = { 0 };
+    WCHAR szFile[260] = {0 };
 
     // Initialize OPENFILENAME
     ZeroMemory(&ofn, sizeof(ofn));

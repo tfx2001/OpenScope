@@ -16,7 +16,6 @@
 
 #include "lib/event.hpp"
 
-#include <iostream>
 #include <cassert>
 #include <fmt/format.h>
 

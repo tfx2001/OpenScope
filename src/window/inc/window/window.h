@@ -23,7 +23,7 @@
 #include <imgui.h>
 #include <GLFW/glfw3.h>
 
-#include "lib/openocd.h"
+#include "lib/probe.h"
 #include "widget/sidebar.h"
 #include "widget/popup.h"
 #include "widget/console.h"
@@ -57,10 +57,9 @@ private:
     std::string m_window_title;
     Sidebar m_sidebar;
     Popup m_popup;
-    Console m_console;
     RttViewer m_rtt_viewer;
 
-    OpenOcd m_openocd;
+    Probe m_probe;
 };
 
 } // OpenScope

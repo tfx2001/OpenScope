@@ -22,6 +22,12 @@ int main(int, char **) {
     std::filesystem::path path;
     if (OpenScope::platform::openFile(path)) {
         std::cout << path << std::endl;
+
+        if (std::filesystem::exists(path)) {
+            std::cout << "File exists." << std::endl;
+        } else {
+            std::cout << "File not exists." << std::endl;
+        }
     } else {
         std::cout << "User cancelled." << std::endl;
     }

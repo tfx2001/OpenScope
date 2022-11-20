@@ -19,6 +19,7 @@
 
 #include "widget/widget.h"
 #include "widget/filter_combo.h"
+#include "lib/probe.h"
 
 #include <functional>
 #include <system_error>
@@ -28,7 +29,7 @@ namespace OpenScope {
 
 class Sidebar : public Widget {
 public:
-    using ConnectCallback = std::function<std::error_code(const std::string &, const std::string &)>;
+    using ConnectCallback = std::function<void(std::size_t, const std::string &)>;
     using TerminateCallback = std::function<void()>;
 
     Sidebar();
@@ -36,7 +37,7 @@ public:
 
     void drawContent() override;
     void setConnectCallback(const ConnectCallback &f);
-    void setTerminateCallback(const TerminateCallback &f);
+    void setCloseCallback(const TerminateCallback &f);
 
     static constexpr char WINDOW_NAME[] = "Debug Configuration";
 
@@ -44,10 +45,10 @@ private:
     FilterCombo m_target_combo;
 
     int m_intf_index = 0;
+    std::vector<Probe::DebugProbeInfo> m_probes;
     bool m_is_running = false;
-    std::mutex m_lock;
     ConnectCallback m_connect_cb;
-    TerminateCallback m_terminate_cb;
+    TerminateCallback m_close_cb;
 };
 
 } // OpenScope

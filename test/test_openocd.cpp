@@ -16,14 +16,14 @@
 #ifndef OPENSCOPE_TEST_OPENOCD_H
 
 #include <iostream>
-#include <lib/openocd.h>
+#include <lib/probe.h>
 
 using namespace OpenScope;
 
 int main(int, char **) {
-    OpenOcd openocd;
+    Probe openocd;
 
-    openocd.startProcess(OpenOcd::INTERFACE_LIST[1].second, "target/stm32h7x.cfg");
+    openocd.open(Probe::INTERFACE_LIST[1].second, "target/stm32h7x.cfg");
     return 0;
 }
 

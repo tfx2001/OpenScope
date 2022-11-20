@@ -28,25 +28,24 @@
 
 namespace OpenScope {
 
-Window::Window() :
-        m_console(Console::OPENOCD_WINDOW_NAME, true) {
+Window::Window() {
     this->initGLFW();
     this->initImGui();
 
     EventManager::subscribe<WindowCreate>(this, [this](const std::string &) { this->resetLayout(); });
 
-    m_sidebar.setConnectCallback([&](auto &intf, auto &target) {
-      return m_openocd.startProcess(intf, target);
+    m_sidebar.setConnectCallback([&](auto intf, auto &target) {
+          m_probe.open(intf, target);
     });
-    m_sidebar.setTerminateCallback([&] { m_openocd.terminate(); });
+    m_sidebar.setCloseCallback([&] { m_probe.close(); });
 
-    m_openocd.setOpenOcdMsgCallback([&](auto &&msg) { m_console.appendLine(std::forward<std::string>(msg)); });
-    m_openocd.setRttMsgCallback([&](auto &&msg) { m_rtt_viewer.append(std::forward<std::string>(msg)); });
+    m_probe.setRttMsgCallback([&](auto &&msg) { m_rtt_viewer.append(std::forward<std::string>(msg)); });
 
     m_rtt_viewer.setStartCallback([&](uint32_t start, uint32_t size) {
-      return m_openocd.startRtt(start, size);
+      return m_probe.startRtt(start, size);
     });
-    m_rtt_viewer.setStopCallback([&] { m_openocd.stopRtt(); });
+    m_rtt_viewer.setStopCallback([&] { m_probe.stopRtt(); });
+    m_rtt_viewer.setSendCallback([&](auto &&msg) { m_probe.writeString(std::forward<std::string>(msg)); });
 }
 
 Window::~Window() {
